@@ -1,0 +1,59 @@
+/* ===================================================================
+   APARÊNCIA DO APP — este arquivo é o mais gostoso de mexer.
+   Salve e atualize o navegador: a mudança aparece na hora.
+
+   As cores abaixo são "apelidos". Trocar o valor aqui em cima muda
+   o app inteiro de uma vez, sem precisar caçar cor arquivo afora.
+   =================================================================== */
+
+:root {
+  --fundo: #12121a;   /* fundo da página */
+  --texto: #f2f2f7;   /* cor das letras */
+  --suave: #9a9aab;   /* letras secundárias, menos importantes */
+  --carta: #1e1e2a;   /* fundo de cada cartão de filme */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header { padding: 24px 20px 8px; }
+h1 { font-size: 1.4rem; margin: 0; }
+
+main { padding: 16px 20px 40px; }
+
+/* A grade se ajusta sozinha ao tamanho da tela: cada pôster tem no
+   mínimo 140px, e cabem quantos couberem. */
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.cartao { background: var(--carta); border-radius: 10px; overflow: hidden; }
+.cartao img { width: 100%; display: block; aspect-ratio: 2 / 3; object-fit: cover; }
+.cartao .titulo { font-size: 0.82rem; padding: 8px 10px 12px; line-height: 1.3; }
+
+/* Nem todo filme tem pôster na TMDB. Sem isto, fica um buraco na grade. */
+.sem-poster {
+  aspect-ratio: 2 / 3;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--suave);
+  background: #262633;
+}
+
+.creditos {
+  padding: 20px;
+  font-size: 0.72rem;
+  color: var(--suave);
+  border-top: 1px solid #2a2a38;
+}
