@@ -57,3 +57,32 @@ main { padding: 16px 20px 40px; }
   color: var(--suave);
   border-top: 1px solid #2a2a38;
 }
+
+/* ===================================================================
+   BARRA DE SERVIÇOS DE STREAMING (Fase 2)
+   =================================================================== */
+
+.servicos {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;      /* se não couber, rola de lado em vez de quebrar */
+  padding: 12px 20px;
+}
+
+.servicos button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--carta);
+  cursor: pointer;
+}
+
+/* O serviço selecionado ganha borda. */
+.servicos button[aria-pressed="true"] { border-color: var(--texto); }
+
+.servicos img { width: 40px; height: 40px; border-radius: 8px; }
