@@ -1,0 +1,4 @@
+# O servidor que roda este projeto é Linux, então tudo é guardado com quebra
+# de linha LF, independente de ter sido escrito no Windows.
+* text=auto eol=lf
+*.sh text eol=lf
