@@ -1,5 +1,6 @@
 /* ===================================================================
-   COMPORTAMENTO DO APP — o único arquivo que "pensa".
+   Tá Onde? — COMPORTAMENTO DO APP
+   O único arquivo que "pensa": pede os filmes e desenha a tela.
 
    Repare numa coisa importante: NÃO existe nenhuma chave aqui.
    O pedido vai para /api/tmdb, que é o nosso próprio servidor —
@@ -17,6 +18,8 @@ const campoAno = document.querySelector('#f-ano');
 const campoNota = document.querySelector('#f-nota');
 const painel = document.querySelector('#detalhe');
 const painelConteudo = document.querySelector('#detalhe-conteudo');
+const botaoMais = document.querySelector('#mais');
+const contagem = document.querySelector('#contagem');
 
 // Escolhidos por Josi em 08/09/2026, entre os 86 serviços cadastrados no Brasil.
 // Os códigos e os logos vieram da própria API — nunca escritos de memória.
@@ -32,6 +35,10 @@ const SERVICOS = [
 // --- Estado do app: o que está selecionado agora na tela ---
 let servicoAtual = SERVICOS[0].id;
 const filtros = { genero: '', ano: '', nota: '' };
+let pagina = 1;
+let totalPaginas = 1;
+let totalFilmes = 0;
+let carregando = false;
 
 /* ------------------------------------------------------------------
    Falar com o nosso servidor
@@ -42,6 +49,23 @@ async function pedir(rota, parametros = {}) {
   const resposta = await fetch(`/api/tmdb?${busca}`);
   if (!resposta.ok) throw new Error(`A TMDB respondeu ${resposta.status}`);
   return resposta.json();
+}
+
+// Monta os parâmetros da consulta principal. Só manda o filtro que está
+// preenchido — mandar vazio faz a TMDB devolver resultado errado.
+function parametrosDaBusca(idioma, numeroDaPagina) {
+  const p = {
+    language: idioma,
+    watch_region: 'BR',
+    with_watch_providers: servicoAtual,
+    with_watch_monetization_types: 'flatrate|free|ads',
+    sort_by: 'popularity.desc',
+    page: String(numeroDaPagina),
+  };
+  if (filtros.genero) p.with_genres = filtros.genero;
+  if (filtros.ano) p.primary_release_year = filtros.ano;
+  if (filtros.nota) p['vote_average.gte'] = filtros.nota;
+  return p;
 }
 
 /* ------------------------------------------------------------------
@@ -84,17 +108,37 @@ function esconderAviso() {
 }
 
 /* ------------------------------------------------------------------
+   Títulos: nem todo filme tem tradução em português
+   ------------------------------------------------------------------ */
+
+// Quando a TMDB não tem título em português, ela devolve o original —
+// que pode estar em híndi, coreano, árabe. Ilegível para quem lê a grade.
+// Nesses casos usamos o título em inglês, que ao menos é pronunciável.
+function temLetraLatina(texto) {
+  return /[a-zA-ZÀ-ÿ]/.test(texto || '');
+}
+
+function melhorTitulo(filme, titulosEmIngles) {
+  if (temLetraLatina(filme.title)) return filme.title;
+  const emIngles = titulosEmIngles.get(filme.id);
+  if (emIngles && temLetraLatina(emIngles)) return emIngles;
+  return filme.title;
+}
+
+/* ------------------------------------------------------------------
    Desenhar os filmes
    ------------------------------------------------------------------ */
 
-function cartaoDoFilme(filme) {
+function cartaoDoFilme(filme, titulosEmIngles) {
+  const nome = melhorTitulo(filme, titulosEmIngles);
+
   const cartao = document.createElement('article');
   cartao.className = 'cartao';
 
   if (filme.poster_path) {
     const img = document.createElement('img');
     img.src = IMAGEM + filme.poster_path;
-    img.alt = `Pôster de ${filme.title}`;
+    img.alt = `Pôster de ${nome}`;
     img.loading = 'lazy';
     cartao.append(img);
   } else {
@@ -106,7 +150,7 @@ function cartaoDoFilme(filme) {
 
   const titulo = document.createElement('p');
   titulo.className = 'titulo';
-  titulo.textContent = filme.title;
+  titulo.textContent = nome;
   cartao.append(titulo);
 
   // Clicar (ou apertar Enter/espaço, para quem navega pelo teclado)
@@ -124,41 +168,75 @@ function cartaoDoFilme(filme) {
   return cartao;
 }
 
-function desenharGrade(filmes) {
-  grade.replaceChildren(...filmes.map(cartaoDoFilme));
+function atualizarRodape() {
+  const naTela = grade.querySelectorAll('.cartao').length;
+  contagem.textContent = totalFilmes
+    ? `${naTela} de ${totalFilmes.toLocaleString('pt-BR')} filmes`
+    : '';
+  botaoMais.hidden = pagina >= totalPaginas || totalFilmes === 0;
+  botaoMais.disabled = false;
+  botaoMais.textContent = 'Carregar mais';
 }
 
-async function carregarFilmes() {
-  mostrarEsqueletos();
+// Busca uma página. `acrescentar` decide entre trocar a grade toda
+// (nova busca) ou pendurar mais filmes no fim (botão "carregar mais").
+async function buscarPagina(numeroDaPagina, acrescentar) {
+  if (carregando) return;
+  carregando = true;
 
-  const parametros = {
-    language: 'pt-BR',
-    watch_region: 'BR',
-    with_watch_providers: servicoAtual,
-    with_watch_monetization_types: 'flatrate|free|ads',
-    sort_by: 'popularity.desc',
-    page: '1',
-  };
-
-  // Só mandamos o filtro se ele estiver preenchido. Mandar vazio faz a
-  // TMDB devolver resultado errado em vez de ignorar.
-  if (filtros.genero) parametros.with_genres = filtros.genero;
-  if (filtros.ano) parametros.primary_release_year = filtros.ano;
-  if (filtros.nota) parametros['vote_average.gte'] = filtros.nota;
+  if (!acrescentar) mostrarEsqueletos();
 
   try {
-    const dados = await pedir('discover/movie', parametros);
+    // Os dois pedidos saem juntos, não um depois do outro: o segundo é
+    // só para ter o título em inglês dos filmes sem tradução.
+    const [ptBR, enUS] = await Promise.all([
+      pedir('discover/movie', parametrosDaBusca('pt-BR', numeroDaPagina)),
+      pedir('discover/movie', parametrosDaBusca('en-US', numeroDaPagina)),
+    ]);
 
-    if (!dados.results || dados.results.length === 0) {
+    const titulosEmIngles = new Map((enUS.results || []).map((f) => [f.id, f.title]));
+
+    pagina = numeroDaPagina;
+    totalPaginas = ptBR.total_pages || 1;
+    totalFilmes = ptBR.total_results || 0;
+
+    const filmes = ptBR.results || [];
+
+    if (filmes.length === 0 && !acrescentar) {
+      botaoMais.hidden = true;
+      contagem.textContent = '';
       mostrarAviso('Nenhum filme com esses filtros neste serviço.', true);
       return;
     }
 
-    desenharGrade(dados.results);
+    const cartoes = filmes.map((f) => cartaoDoFilme(f, titulosEmIngles));
+    if (acrescentar) grade.append(...cartoes);
+    else grade.replaceChildren(...cartoes);
+
+    atualizarRodape();
   } catch (erro) {
-    mostrarAviso('Não consegui carregar os filmes agora. Tente de novo em instantes.');
+    if (acrescentar) {
+      botaoMais.disabled = false;
+      botaoMais.textContent = 'Não consegui. Tentar de novo';
+    } else {
+      botaoMais.hidden = true;
+      contagem.textContent = '';
+      mostrarAviso('Não consegui carregar os filmes agora. Tente de novo em instantes.');
+    }
+  } finally {
+    carregando = false;
   }
 }
+
+function carregarFilmes() {
+  return buscarPagina(1, false);
+}
+
+botaoMais.addEventListener('click', () => {
+  botaoMais.disabled = true;
+  botaoMais.textContent = 'Carregando…';
+  buscarPagina(pagina + 1, true);
+});
 
 /* ------------------------------------------------------------------
    Painel de detalhe
@@ -205,13 +283,12 @@ async function abrirDetalhe(id) {
   painelConteudo.replaceChildren();
   painel.showModal();
 
-  const carregando = document.createElement('p');
-  carregando.className = 'meta';
-  carregando.textContent = 'Carregando…';
-  painelConteudo.append(carregando);
+  const carregandoTexto = document.createElement('p');
+  carregandoTexto.className = 'meta';
+  carregandoTexto.textContent = 'Carregando…';
+  painelConteudo.append(carregandoTexto);
 
   try {
-    // Os dois pedidos saem ao mesmo tempo, não um depois do outro.
     const [filme, onde] = await Promise.all([
       pedir(`movie/${id}`, { language: 'pt-BR' }),
       pedir(`movie/${id}/watch/providers`),
@@ -220,7 +297,7 @@ async function abrirDetalhe(id) {
     const disponibilidade = onde.results?.BR;
 
     const titulo = document.createElement('h2');
-    titulo.textContent = filme.title;
+    titulo.textContent = temLetraLatina(filme.title) ? filme.title : filme.original_title;
 
     const meta = document.createElement('p');
     meta.className = 'meta';

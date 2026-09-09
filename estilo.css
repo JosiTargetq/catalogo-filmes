@@ -221,3 +221,59 @@ main { padding: 16px 20px 40px; }
   color: var(--suave);
   line-height: 1.5;
 }
+
+/* ===================================================================
+   ACABAMENTO (Fase 5): subtítulo, carregar mais, celular, logo TMDB
+   =================================================================== */
+
+.subtitulo {
+  margin: 6px 0 0;
+  color: var(--suave);
+  font-size: 0.88rem;
+}
+
+.rodape-grade {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.mais {
+  background: var(--carta);
+  color: var(--texto);
+  border: 1px solid #33334a;
+  border-radius: 10px;
+  padding: 11px 22px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mais:hover:not(:disabled) { border-color: var(--suave); }
+.mais:disabled { opacity: 0.6; cursor: default; }
+
+.contagem { margin: 0; font-size: 0.75rem; color: var(--suave); }
+
+.logo-tmdb {
+  width: 110px;
+  height: auto;
+  display: block;
+  margin-bottom: 14px;
+  opacity: 0.85;
+}
+
+/* --- Telas pequenas --- */
+@media (max-width: 480px) {
+  .grade { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; }
+  header { padding: 16px 14px 4px; }
+  h1 { font-size: 1.25rem; }
+  .subtitulo { font-size: 0.8rem; }
+  main { padding: 12px 14px 32px; }
+  .servicos { padding: 10px 14px; }
+  .filtros { gap: 10px; }
+  .filtros label { flex: 1 1 44%; }
+  .filtros select, .filtros input { width: 100%; }
+  .cartao .titulo { font-size: 0.76rem; }
+  .detalhe { padding: 16px; }
+  .creditos { padding: 18px 14px; }
+}

@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Catálogo de Filmes</title>
+  <title>Tá Onde? — filmes nos streamings</title>
+  <meta name="description" content="Descubra em qual streaming está o filme que você quer ver — incluindo o que dá para assistir de graça no Brasil.">
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
   <header>
-    <h1>Catálogo de Filmes</h1>
+    <h1>Tá Onde?</h1>
+    <p class="subtitulo">O que dá pra assistir agora nos streamings do Brasil</p>
   </header>
 
   <nav id="servicos" class="servicos" aria-label="Serviços de streaming"></nav>
@@ -37,6 +39,11 @@
 
     <div id="aviso" class="aviso" hidden></div>
     <div id="grade" class="grade"></div>
+
+    <div class="rodape-grade">
+      <button type="button" id="mais" class="mais" hidden>Carregar mais</button>
+      <p id="contagem" class="contagem"></p>
+    </div>
   </main>
 
   <!-- Painel de detalhe. <dialog> é o elemento que o próprio navegador
@@ -48,6 +55,7 @@
   </dialog>
 
   <footer class="creditos">
+    <img src="img/tmdb.svg" alt="The Movie Database" class="logo-tmdb">
     <p>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or
        otherwise approved by TMDB.</p>
     <p>Dados de disponibilidade em streaming fornecidos por <strong>JustWatch</strong>.</p>
