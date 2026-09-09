@@ -40,6 +40,14 @@ let totalPaginas = 1;
 let totalFilmes = 0;
 let carregando = false;
 
+// Quais filmes já estão desenhados na tela.
+//
+// Por que isto existe: a TMDB ordena por popularidade, e a popularidade
+// muda entre uma consulta e outra. Um filme que era o 20º da página 1 pode
+// virar o 21º e reaparecer na página 2. Sem esta lista, o "carregar mais"
+// mostraria o mesmo filme duas vezes.
+const idsNaTela = new Set();
+
 /* ------------------------------------------------------------------
    Falar com o nosso servidor
    ------------------------------------------------------------------ */
@@ -112,16 +120,24 @@ function esconderAviso() {
    ------------------------------------------------------------------ */
 
 // Quando a TMDB não tem título em português, ela devolve o original —
-// que pode estar em híndi, coreano, árabe. Ilegível para quem lê a grade.
-// Nesses casos usamos o título em inglês, que ao menos é pronunciável.
-function temLetraLatina(texto) {
-  return /[a-zA-ZÀ-ÿ]/.test(texto || '');
+// que pode estar em híndi, tâmil, coreano, árabe. Ilegível na grade.
+// Nesses casos tentamos o título em inglês, que ao menos é pronunciável.
+//
+// A regra precisa ser exata: "tem letras, e NENHUMA delas é do alfabeto
+// latino". Só perguntar "não tem letra latina?" pegaria títulos como
+// "2012", que são números e estão perfeitamente legíveis.
+function precisaDeTraducao(texto) {
+  const t = texto || '';
+  return /\p{L}/u.test(t) && !/\p{Script=Latin}/u.test(t);
 }
 
+// ⚠️ Limite conhecido: às vezes a TMDB não tem título em inglês também
+// (acontece com filmes indianos e do sudeste asiático). Nesse caso não há
+// o que fazer — devolvemos o original em vez de inventar.
 function melhorTitulo(filme, titulosEmIngles) {
-  if (temLetraLatina(filme.title)) return filme.title;
+  if (!precisaDeTraducao(filme.title)) return filme.title;
   const emIngles = titulosEmIngles.get(filme.id);
-  if (emIngles && temLetraLatina(emIngles)) return emIngles;
+  if (emIngles && !precisaDeTraducao(emIngles)) return emIngles;
   return filme.title;
 }
 
@@ -203,13 +219,20 @@ async function buscarPagina(numeroDaPagina, acrescentar) {
     const filmes = ptBR.results || [];
 
     if (filmes.length === 0 && !acrescentar) {
+      idsNaTela.clear();
       botaoMais.hidden = true;
       contagem.textContent = '';
       mostrarAviso('Nenhum filme com esses filtros neste serviço.', true);
       return;
     }
 
-    const cartoes = filmes.map((f) => cartaoDoFilme(f, titulosEmIngles));
+    if (!acrescentar) idsNaTela.clear();
+
+    // Descarta o que já está na tela (ver comentário em idsNaTela).
+    const novos = filmes.filter((f) => !idsNaTela.has(f.id));
+    for (const f of novos) idsNaTela.add(f.id);
+
+    const cartoes = novos.map((f) => cartaoDoFilme(f, titulosEmIngles));
     if (acrescentar) grade.append(...cartoes);
     else grade.replaceChildren(...cartoes);
 
@@ -297,7 +320,7 @@ async function abrirDetalhe(id) {
     const disponibilidade = onde.results?.BR;
 
     const titulo = document.createElement('h2');
-    titulo.textContent = temLetraLatina(filme.title) ? filme.title : filme.original_title;
+    titulo.textContent = filme.title;
 
     const meta = document.createElement('p');
     meta.className = 'meta';
