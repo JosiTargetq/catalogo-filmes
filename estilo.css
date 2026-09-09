@@ -86,3 +86,53 @@ main { padding: 16px 20px 40px; }
 .servicos button[aria-pressed="true"] { border-color: var(--texto); }
 
 .servicos img { width: 40px; height: 40px; border-radius: 8px; }
+
+/* ===================================================================
+   FILTROS E AVISOS (Fase 3)
+   =================================================================== */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+}
+
+.filtros label { display: grid; gap: 4px; color: var(--suave); }
+
+.filtros select,
+.filtros input {
+  background: var(--carta);
+  color: var(--texto);
+  border: 1px solid #33334a;
+  border-radius: 8px;
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.filtros button,
+.aviso button {
+  background: transparent;
+  color: var(--suave);
+  border: 1px solid #33334a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.filtros button:hover,
+.aviso button:hover { color: var(--texto); border-color: var(--suave); }
+
+/* Tela de "não achei nada" e de erro. Sem isto, a pessoa vê o vazio
+   e acha que o app quebrou. */
+.aviso {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--suave);
+  line-height: 1.6;
+}
+
+.aviso p { margin: 0 0 16px; }
