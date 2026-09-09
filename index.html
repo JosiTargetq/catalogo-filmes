@@ -5,13 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tá Onde? — filmes nos streamings</title>
   <meta name="description" content="Descubra em qual streaming está o filme que você quer ver — incluindo o que dá para assistir de graça no Brasil.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
   <header>
     <h1>Tá Onde?</h1>
-    <p class="subtitulo">O que dá pra assistir agora nos streamings do Brasil</p>
+    <p class="subtitulo">Onde assistir um filme hoje no Brasil — e o que dá pra ver de graça</p>
+
+    <div class="busca">
+      <input id="f-busca" type="search" autocomplete="off"
+             placeholder="Buscar um filme pelo nome">
+    </div>
   </header>
+
+  <div class="separador"><span>ou navegue por serviço</span></div>
 
   <nav id="servicos" class="servicos" aria-label="Serviços de streaming"></nav>
 
@@ -36,6 +46,11 @@
 
       <button type="button" id="f-limpar">Limpar filtros</button>
     </section>
+
+    <p id="modo-busca" class="modo-busca" hidden>
+      <span id="modo-busca-texto"></span>
+      <button type="button" id="sair-busca">Voltar ao catálogo</button>
+    </p>
 
     <div id="aviso" class="aviso" hidden></div>
     <div id="grade" class="grade"></div>

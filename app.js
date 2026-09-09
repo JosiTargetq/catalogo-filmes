@@ -20,6 +20,10 @@ const painel = document.querySelector('#detalhe');
 const painelConteudo = document.querySelector('#detalhe-conteudo');
 const botaoMais = document.querySelector('#mais');
 const contagem = document.querySelector('#contagem');
+const campoBusca = document.querySelector('#f-busca');
+const painelFiltros = document.querySelector('#filtros');
+const modoBusca = document.querySelector('#modo-busca');
+const modoBuscaTexto = document.querySelector('#modo-busca-texto');
 
 // Escolhidos por Josi em 08/09/2026, entre os 86 serviços cadastrados no Brasil.
 // Os códigos e os logos vieram da própria API — nunca escritos de memória.
@@ -39,6 +43,14 @@ let pagina = 1;
 let totalPaginas = 1;
 let totalFilmes = 0;
 let carregando = false;
+
+// Termo digitado na busca. Vazio = o app está navegando por serviço.
+//
+// A busca por nome varre o acervo INTEIRO da TMDB, não o catálogo de um
+// serviço — não existe "buscar dentro da Netflix" na API. Por isso, com a
+// busca ativa, a barra de serviços e os filtros ficam desativados, e o app
+// diz isso na tela em vez de deixar a pessoa achar que eles estão valendo.
+let termoBusca = '';
 
 // Quais filmes já estão desenhados na tela.
 //
@@ -74,6 +86,32 @@ function parametrosDaBusca(idioma, numeroDaPagina) {
   if (filtros.ano) p.primary_release_year = filtros.ano;
   if (filtros.nota) p['vote_average.gte'] = filtros.nota;
   return p;
+}
+
+function parametrosDaBuscaPorNome(idioma, numeroDaPagina) {
+  return {
+    language: idioma,
+    query: termoBusca,
+    include_adult: 'false',
+    page: String(numeroDaPagina),
+  };
+}
+
+function estaBuscando() {
+  return termoBusca.length >= 2;
+}
+
+// Mostra na tela que a busca está mandando, e que serviço e filtros
+// não estão valendo agora.
+function atualizarModoBusca() {
+  const buscando = estaBuscando();
+  document.querySelector('#servicos').classList.toggle('desativado', buscando);
+  painelFiltros.classList.toggle('desativado', buscando);
+  modoBusca.hidden = !buscando;
+  if (buscando) {
+    modoBuscaTexto.textContent =
+      `Buscando "${termoBusca}" em todo o acervo — serviço e filtros não se aplicam.`;
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -203,11 +241,16 @@ async function buscarPagina(numeroDaPagina, acrescentar) {
   if (!acrescentar) mostrarEsqueletos();
 
   try {
+    // Duas fontes possíveis: a busca por nome varre o acervo inteiro,
+    // o catálogo por serviço usa os filtros.
+    const rota = estaBuscando() ? 'search/movie' : 'discover/movie';
+    const montar = estaBuscando() ? parametrosDaBuscaPorNome : parametrosDaBusca;
+
     // Os dois pedidos saem juntos, não um depois do outro: o segundo é
     // só para ter o título em inglês dos filmes sem tradução.
     const [ptBR, enUS] = await Promise.all([
-      pedir('discover/movie', parametrosDaBusca('pt-BR', numeroDaPagina)),
-      pedir('discover/movie', parametrosDaBusca('en-US', numeroDaPagina)),
+      pedir(rota, montar('pt-BR', numeroDaPagina)),
+      pedir(rota, montar('en-US', numeroDaPagina)),
     ]);
 
     const titulosEmIngles = new Map((enUS.results || []).map((f) => [f.id, f.title]));
@@ -222,7 +265,11 @@ async function buscarPagina(numeroDaPagina, acrescentar) {
       idsNaTela.clear();
       botaoMais.hidden = true;
       contagem.textContent = '';
-      mostrarAviso('Nenhum filme com esses filtros neste serviço.', true);
+      if (estaBuscando()) {
+        mostrarAviso(`Não encontrei nenhum filme chamado "${termoBusca}".`);
+      } else {
+        mostrarAviso('Nenhum filme com esses filtros neste serviço.', true);
+      }
       return;
     }
 
@@ -439,6 +486,35 @@ campoNota.addEventListener('change', (e) => {
 });
 
 document.querySelector('#f-limpar').addEventListener('click', limparFiltros);
+
+/* ------------------------------------------------------------------
+   Busca por nome
+   ------------------------------------------------------------------ */
+
+let temporizadorBusca;
+
+campoBusca.addEventListener('input', (e) => {
+  const termo = e.target.value.trim();
+
+  // Espera 400 ms depois da última tecla antes de perguntar à TMDB.
+  // Sem isso, "Matrix" dispararia seis consultas — uma por letra.
+  clearTimeout(temporizadorBusca);
+  temporizadorBusca = setTimeout(() => {
+    termoBusca = termo;
+    atualizarModoBusca();
+    buscarPagina(1, false);
+  }, 400);
+});
+
+function sairDaBusca() {
+  clearTimeout(temporizadorBusca);
+  termoBusca = '';
+  campoBusca.value = '';
+  atualizarModoBusca();
+  carregarFilmes();
+}
+
+document.querySelector('#sair-busca').addEventListener('click', sairDaBusca);
 
 /* ------------------------------------------------------------------
    Começo de tudo

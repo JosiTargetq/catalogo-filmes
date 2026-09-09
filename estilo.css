@@ -1,16 +1,25 @@
 /* ===================================================================
-   APARÊNCIA DO APP — este arquivo é o mais gostoso de mexer.
-   Salve e atualize o navegador: a mudança aparece na hora.
+   Tá Onde? — APARÊNCIA
+   Este é o arquivo mais gostoso de mexer: salve, atualize o navegador,
+   e a mudança aparece na hora.
 
-   As cores abaixo são "apelidos". Trocar o valor aqui em cima muda
-   o app inteiro de uma vez, sem precisar caçar cor arquivo afora.
+   As cores abaixo são "apelidos". Trocar um valor aqui em cima muda o
+   app inteiro de uma vez, sem precisar caçar cor arquivo afora.
+
+   A ideia da paleta: o app é um guia de cinema, e quem faz barulho na
+   tela são os pôsteres. O fundo é cortina de cinema no escuro. O
+   dourado — a lâmpada da marquise — aparece em UM lugar só: a etiqueta
+   "grátis". Assim a cor carrega informação em vez de enfeitar.
    =================================================================== */
 
 :root {
-  --fundo: #12121a;   /* fundo da página */
-  --texto: #f2f2f7;   /* cor das letras */
-  --suave: #9a9aab;   /* letras secundárias, menos importantes */
-  --carta: #1e1e2a;   /* fundo de cada cartão de filme */
+  --fundo:      #17101C;   /* berinjela profunda: cortina no escuro */
+  --superficie: #211729;   /* cartões e campos, um degrau acima do fundo */
+  --borda:      #34263D;   /* linhas e contornos discretos */
+  --texto:      #F5EFEA;   /* branco quente, luz de projetor */
+  --suave:      #A897AD;   /* malva: textos secundários */
+  --dourado:    #F2B441;   /* marquise. SÓ para "grátis" */
+  --raio: 12px;
 }
 
 * { box-sizing: border-box; }
@@ -19,25 +28,167 @@ body {
   margin: 0;
   background: var(--fundo);
   color: var(--texto);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: Archivo, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-header { padding: 24px 20px 8px; }
-h1 { font-size: 1.4rem; margin: 0; }
+/* --- Cabeçalho e busca --- */
 
-main { padding: 16px 20px 40px; }
+header { padding: 34px 24px 20px; max-width: 780px; }
 
-/* A grade se ajusta sozinha ao tamanho da tela: cada pôster tem no
-   mínimo 140px, e cabem quantos couberem. */
+h1 {
+  font-family: "Archivo Black", Archivo, sans-serif;
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 0;
+}
+
+.subtitulo {
+  margin: 10px 0 0;
+  color: var(--suave);
+  font-size: 0.95rem;
+  max-width: 46ch;
+}
+
+/* A busca fica acima da barra de serviços de propósito: ela varre o
+   acervo inteiro e ignora o serviço selecionado, então opera num nível
+   acima. A posição na tela conta isso sem precisar de texto. */
+.busca { margin-top: 22px; max-width: 460px; }
+
+.busca input {
+  width: 100%;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 13px 16px;
+  font: inherit;
+}
+
+.busca input::placeholder { color: var(--suave); }
+.busca input:focus { outline: 2px solid var(--dourado); outline-offset: 1px; }
+
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  margin: 6px 0 2px;
+  color: var(--suave);
+  font-size: 0.78rem;
+}
+
+.separador::after { content: ""; flex: 1; height: 1px; background: var(--borda); }
+
+/* --- Barra de serviços --- */
+
+.servicos {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 14px 24px 6px;
+}
+
+.servicos button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--superficie);
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.servicos button:hover { opacity: 0.85; }
+
+/* O serviço selecionado fica nítido; os outros recuam. */
+.servicos button[aria-pressed="true"] { opacity: 1; border-color: var(--texto); }
+.servicos button:focus-visible { outline: 2px solid var(--dourado); outline-offset: 2px; }
+.servicos img { width: 40px; height: 40px; border-radius: 9px; }
+
+/* Durante a busca, a barra e os filtros não valem — e o app mostra isso. */
+.desativado { opacity: 0.35; pointer-events: none; }
+
+/* --- Filtros --- */
+
+main { padding: 18px 24px 48px; }
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 22px;
+  font-size: 0.85rem;
+}
+
+.filtros label { display: grid; gap: 5px; color: var(--suave); }
+
+.filtros select,
+.filtros input {
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.filtros select:focus,
+.filtros input:focus { outline: 2px solid var(--dourado); outline-offset: 1px; }
+
+.filtros button,
+.aviso button,
+.modo-busca button {
+  background: transparent;
+  color: var(--suave);
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  padding: 9px 13px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.filtros button:hover,
+.aviso button:hover,
+.modo-busca button:hover { color: var(--texto); border-color: var(--suave); }
+
+.modo-busca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+/* --- A grade de pôsteres: tudo aqui existe para sumir sob as imagens --- */
+
 .grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  gap: 18px;
 }
 
-.cartao { background: var(--carta); border-radius: 10px; overflow: hidden; }
+.cartao {
+  background: var(--superficie);
+  border-radius: var(--raio);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.cartao:hover { transform: translateY(-3px); }
+.cartao:focus-visible { outline: 2px solid var(--dourado); outline-offset: 3px; }
 .cartao img { width: 100%; display: block; aspect-ratio: 2 / 3; object-fit: cover; }
-.cartao .titulo { font-size: 0.82rem; padding: 8px 10px 12px; line-height: 1.3; }
+.cartao .titulo { font-size: 0.84rem; padding: 9px 11px 13px; line-height: 1.3; margin: 0; }
 
 /* Nem todo filme tem pôster na TMDB. Sem isto, fica um buraco na grade. */
 .sem-poster {
@@ -48,103 +199,14 @@ main { padding: 16px 20px 40px; }
   text-align: center;
   font-size: 0.78rem;
   color: var(--suave);
-  background: #262633;
+  background: #2C2035;
 }
 
-.creditos {
-  padding: 20px;
-  font-size: 0.72rem;
-  color: var(--suave);
-  border-top: 1px solid #2a2a38;
-}
-
-/* ===================================================================
-   BARRA DE SERVIÇOS DE STREAMING (Fase 2)
-   =================================================================== */
-
-.servicos {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;      /* se não couber, rola de lado em vez de quebrar */
-  padding: 12px 20px;
-}
-
-.servicos button {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  background: var(--carta);
-  cursor: pointer;
-}
-
-/* O serviço selecionado ganha borda. */
-.servicos button[aria-pressed="true"] { border-color: var(--texto); }
-
-.servicos img { width: 40px; height: 40px; border-radius: 8px; }
-
-/* ===================================================================
-   FILTROS E AVISOS (Fase 3)
-   =================================================================== */
-
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: end;
-  margin-bottom: 20px;
-  font-size: 0.85rem;
-}
-
-.filtros label { display: grid; gap: 4px; color: var(--suave); }
-
-.filtros select,
-.filtros input {
-  background: var(--carta);
-  color: var(--texto);
-  border: 1px solid #33334a;
-  border-radius: 8px;
-  padding: 7px 9px;
-  font: inherit;
-}
-
-.filtros button,
-.aviso button {
-  background: transparent;
-  color: var(--suave);
-  border: 1px solid #33334a;
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font: inherit;
-}
-
-.filtros button:hover,
-.aviso button:hover { color: var(--texto); border-color: var(--suave); }
-
-/* Tela de "não achei nada" e de erro. Sem isto, a pessoa vê o vazio
-   e acha que o app quebrou. */
-.aviso {
-  padding: 32px 16px;
-  text-align: center;
-  color: var(--suave);
-  line-height: 1.6;
-}
-
-.aviso p { margin: 0 0 16px; }
-
-/* ===================================================================
-   ESQUELETOS DE CARREGAMENTO (puxado da Fase 5)
-   =================================================================== */
-
+/* Retângulos pulsando enquanto a resposta não chega. */
 .esqueleto {
   aspect-ratio: 2 / 3;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #1e1e2a, #2a2a3a, #1e1e2a);
+  border-radius: var(--raio);
+  background: linear-gradient(90deg, #211729, #2E2138, #211729);
   background-size: 200% 100%;
   animation: pulsar 1.2s ease-in-out infinite;
 }
@@ -154,126 +216,128 @@ main { padding: 16px 20px 40px; }
   100% { background-position: -200% 0; }
 }
 
-/* Quem configurou o sistema para reduzir animações não vê o pulso. */
 @media (prefers-reduced-motion: reduce) {
   .esqueleto { animation: none; }
+  .cartao { transition: none; }
 }
 
-/* ===================================================================
-   PAINEL DE DETALHE (Fase 4)
-   =================================================================== */
+/* Telas de "não achei nada" e de erro. */
+.aviso { padding: 40px 16px; text-align: center; color: var(--suave); line-height: 1.6; }
+.aviso p { margin: 0 0 16px; }
 
-.cartao { cursor: pointer; transition: transform 0.15s ease; }
-.cartao:hover { transform: translateY(-3px); }
-.cartao:focus-visible { outline: 2px solid var(--texto); outline-offset: 3px; }
-
-.detalhe {
-  width: min(560px, 92vw);
-  border: none;
-  border-radius: 14px;
-  background: var(--carta);
-  color: var(--texto);
-  padding: 20px;
-}
-
-.detalhe::backdrop { background: rgba(0, 0, 0, 0.7); }
-
-.detalhe h2 { margin: 0 0 4px; font-size: 1.2rem; }
-.detalhe .meta { color: var(--suave); font-size: 0.82rem; margin: 0 0 14px; }
-.detalhe .sinopse { line-height: 1.55; font-size: 0.92rem; margin: 0; }
-
-.fechar {
-  float: right;
-  margin-left: 12px;
-  background: transparent;
-  color: var(--suave);
-  border: 1px solid #33334a;
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font: inherit;
-}
-
-.fechar:hover { color: var(--texto); border-color: var(--suave); }
-
-.onde { margin-top: 22px; }
-.onde h3 { font-size: 0.9rem; margin: 0 0 10px; }
-.onde ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.onde li { display: flex; align-items: center; gap: 10px; }
-.onde img { width: 34px; height: 34px; border-radius: 7px; flex: 0 0 auto; }
-.onde .nome-servico { flex: 1; font-size: 0.88rem; }
-
-.etiqueta {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 3px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.etiqueta.incluso { background: #1f4d33; color: #a8e6c1; }
-.etiqueta.gratis  { background: #4d421f; color: #e8d79a; }
-
-.fonte {
-  margin: 18px 0 0;
-  font-size: 0.7rem;
-  color: var(--suave);
-  line-height: 1.5;
-}
-
-/* ===================================================================
-   ACABAMENTO (Fase 5): subtítulo, carregar mais, celular, logo TMDB
-   =================================================================== */
-
-.subtitulo {
-  margin: 6px 0 0;
-  color: var(--suave);
-  font-size: 0.88rem;
-}
-
-.rodape-grade {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  margin-top: 28px;
-}
+.rodape-grade { display: grid; justify-items: center; gap: 10px; margin-top: 32px; }
 
 .mais {
-  background: var(--carta);
+  background: var(--superficie);
   color: var(--texto);
-  border: 1px solid #33334a;
-  border-radius: 10px;
-  padding: 11px 22px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 12px 24px;
   cursor: pointer;
   font: inherit;
 }
 
 .mais:hover:not(:disabled) { border-color: var(--suave); }
 .mais:disabled { opacity: 0.6; cursor: default; }
+.contagem { margin: 0; font-size: 0.76rem; color: var(--suave); }
 
-.contagem { margin: 0; font-size: 0.75rem; color: var(--suave); }
+/* --- Painel de detalhe --- */
 
-.logo-tmdb {
-  width: 110px;
-  height: auto;
-  display: block;
-  margin-bottom: 14px;
-  opacity: 0.85;
+.detalhe {
+  width: min(560px, 92vw);
+  border: none;
+  border-radius: 16px;
+  background: var(--superficie);
+  color: var(--texto);
+  padding: 24px;
 }
 
+.detalhe::backdrop { background: rgba(10, 5, 14, 0.78); }
+
+.detalhe h2 {
+  font-family: "Archivo Black", Archivo, sans-serif;
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.detalhe .meta { color: var(--suave); font-size: 0.82rem; margin: 0 0 16px; }
+.detalhe .sinopse { line-height: 1.6; font-size: 0.93rem; margin: 0; max-width: 60ch; }
+
+.fechar {
+  float: right;
+  margin: 0 0 8px 14px;
+  background: transparent;
+  color: var(--suave);
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  padding: 7px 11px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fechar:hover { color: var(--texto); border-color: var(--suave); }
+
+.onde { margin-top: 26px; }
+.onde h3 { font-size: 0.92rem; margin: 0 0 12px; font-weight: 600; }
+.onde ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+.onde li { display: flex; align-items: center; gap: 11px; }
+.onde img { width: 36px; height: 36px; border-radius: 8px; flex: 0 0 auto; }
+.onde .nome-servico { flex: 1; font-size: 0.9rem; }
+
+/* AS ETIQUETAS — aqui mora a única informação que só este app dá.
+   Dourado sólido = você vê sem pagar nada a mais. Nada mais na tela
+   usa dourado, então a cor sozinha já diz o que importa. */
+.etiqueta {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.etiqueta.gratis  { background: var(--dourado); color: #2A1B05; }
+.etiqueta.incluso { background: transparent; color: var(--suave); border: 1px solid var(--borda); }
+
+.fonte {
+  margin: 22px 0 0;
+  font-size: 0.72rem;
+  color: var(--suave);
+  line-height: 1.55;
+  border-top: 1px solid var(--borda);
+  padding-top: 14px;
+}
+
+/* --- Rodapé: créditos obrigatórios da TMDB e do JustWatch --- */
+
+.creditos {
+  padding: 26px 24px 34px;
+  font-size: 0.73rem;
+  color: var(--suave);
+  border-top: 1px solid var(--borda);
+  max-width: 70ch;
+}
+
+.creditos p { margin: 0 0 8px; }
+
+.logo-tmdb { width: 108px; height: auto; display: block; margin-bottom: 16px; opacity: 0.8; }
+
 /* --- Telas pequenas --- */
-@media (max-width: 480px) {
-  .grade { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; }
-  header { padding: 16px 14px 4px; }
-  h1 { font-size: 1.25rem; }
-  .subtitulo { font-size: 0.8rem; }
-  main { padding: 12px 14px 32px; }
-  .servicos { padding: 10px 14px; }
+
+@media (max-width: 520px) {
+  header { padding: 24px 16px 16px; }
+  .subtitulo { font-size: 0.88rem; }
+  .separador { padding: 0 16px; }
+  .servicos { padding: 12px 16px 4px; gap: 10px; }
+  .servicos button { width: 52px; height: 52px; }
+  .servicos img { width: 36px; height: 36px; }
+  main { padding: 14px 16px 36px; }
+  .grade { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 12px; }
+  .cartao .titulo { font-size: 0.77rem; padding: 8px 9px 11px; }
   .filtros { gap: 10px; }
   .filtros label { flex: 1 1 44%; }
   .filtros select, .filtros input { width: 100%; }
-  .cartao .titulo { font-size: 0.76rem; }
-  .detalhe { padding: 16px; }
-  .creditos { padding: 18px 14px; }
+  .detalhe { padding: 18px; }
+  .creditos { padding: 22px 16px 30px; }
 }

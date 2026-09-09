@@ -13,6 +13,7 @@ const BASE = 'https://api.themoviedb.org/3';
 // quem leva a suspensão é a nossa conta.
 const ROTAS_FIXAS = new Set([
   'discover/movie',
+  'search/movie',
   'watch/providers/movie',
   'genre/movie/list',
 ]);
