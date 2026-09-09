@@ -15,6 +15,8 @@ const aviso = document.querySelector('#aviso');
 const seletorGenero = document.querySelector('#f-genero');
 const campoAno = document.querySelector('#f-ano');
 const campoNota = document.querySelector('#f-nota');
+const painel = document.querySelector('#detalhe');
+const painelConteudo = document.querySelector('#detalhe-conteudo');
 
 // Escolhidos por Josi em 08/09/2026, entre os 86 serviços cadastrados no Brasil.
 // Os códigos e os logos vieram da própria API — nunca escritos de memória.
@@ -45,6 +47,18 @@ async function pedir(rota, parametros = {}) {
 /* ------------------------------------------------------------------
    Os três estados da tela: carregando, vazio, erro
    ------------------------------------------------------------------ */
+
+// Retângulos cinzas pulsando no lugar dos pôsteres. Sem isto, entre
+// "apagou a tela" e "chegou a resposta" fica um vazio que parece defeito.
+function mostrarEsqueletos(quantidade = 20) {
+  esconderAviso();
+  const itens = Array.from({ length: quantidade }, () => {
+    const div = document.createElement('div');
+    div.className = 'esqueleto';
+    return div;
+  });
+  grade.replaceChildren(...itens);
+}
 
 function mostrarAviso(texto, comBotao = false) {
   grade.replaceChildren();
@@ -95,6 +109,18 @@ function cartaoDoFilme(filme) {
   titulo.textContent = filme.title;
   cartao.append(titulo);
 
+  // Clicar (ou apertar Enter/espaço, para quem navega pelo teclado)
+  // abre o painel de detalhe.
+  cartao.tabIndex = 0;
+  cartao.setAttribute('role', 'button');
+  cartao.addEventListener('click', () => abrirDetalhe(filme.id));
+  cartao.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      abrirDetalhe(filme.id);
+    }
+  });
+
   return cartao;
 }
 
@@ -103,7 +129,7 @@ function desenharGrade(filmes) {
 }
 
 async function carregarFilmes() {
-  esconderAviso();
+  mostrarEsqueletos();
 
   const parametros = {
     language: 'pt-BR',
@@ -131,6 +157,117 @@ async function carregarFilmes() {
     desenharGrade(dados.results);
   } catch (erro) {
     mostrarAviso('Não consegui carregar os filmes agora. Tente de novo em instantes.');
+  }
+}
+
+/* ------------------------------------------------------------------
+   Painel de detalhe
+   ------------------------------------------------------------------ */
+
+document.querySelector('#fechar-detalhe')
+  .addEventListener('click', () => painel.close());
+
+// Monta a lista de "onde assistir".
+// Só assinatura e grátis — aluguel e compra ficam fora por decisão de produto:
+// é o que mais confunde, a pessoa acha que verá de graça e leva susto no caixa.
+function listaDeOnde(disponibilidade) {
+  const grupos = [
+    { chave: 'flatrate', etiqueta: 'incluso', texto: 'Incluso na assinatura' },
+    { chave: 'free',     etiqueta: 'gratis',  texto: 'Grátis' },
+    { chave: 'ads',      etiqueta: 'gratis',  texto: 'Grátis com anúncios' },
+  ];
+
+  const itens = [];
+  for (const grupo of grupos) {
+    for (const servico of disponibilidade?.[grupo.chave] ?? []) {
+      const li = document.createElement('li');
+
+      const img = document.createElement('img');
+      img.src = LOGO + servico.logo_path;
+      img.alt = servico.provider_name;
+
+      const nome = document.createElement('span');
+      nome.className = 'nome-servico';
+      nome.textContent = servico.provider_name;
+
+      const etiqueta = document.createElement('span');
+      etiqueta.className = `etiqueta ${grupo.etiqueta}`;
+      etiqueta.textContent = grupo.texto;
+
+      li.append(img, nome, etiqueta);
+      itens.push(li);
+    }
+  }
+  return itens;
+}
+
+async function abrirDetalhe(id) {
+  painelConteudo.replaceChildren();
+  painel.showModal();
+
+  const carregando = document.createElement('p');
+  carregando.className = 'meta';
+  carregando.textContent = 'Carregando…';
+  painelConteudo.append(carregando);
+
+  try {
+    // Os dois pedidos saem ao mesmo tempo, não um depois do outro.
+    const [filme, onde] = await Promise.all([
+      pedir(`movie/${id}`, { language: 'pt-BR' }),
+      pedir(`movie/${id}/watch/providers`),
+    ]);
+
+    const disponibilidade = onde.results?.BR;
+
+    const titulo = document.createElement('h2');
+    titulo.textContent = filme.title;
+
+    const meta = document.createElement('p');
+    meta.className = 'meta';
+    const ano = filme.release_date ? filme.release_date.slice(0, 4) : 'ano desconhecido';
+    const duracao = filme.runtime ? `${filme.runtime} min` : 'duração desconhecida';
+    const nota = filme.vote_average
+      ? `nota ${filme.vote_average.toFixed(1)}`
+      : 'sem nota';
+    meta.textContent = `${ano} · ${duracao} · ${nota}`;
+
+    const sinopse = document.createElement('p');
+    sinopse.className = 'sinopse';
+    sinopse.textContent = filme.overview || 'Sem sinopse em português.';
+
+    const secaoOnde = document.createElement('section');
+    secaoOnde.className = 'onde';
+    const tituloOnde = document.createElement('h3');
+    tituloOnde.textContent = 'Onde assistir no Brasil';
+    secaoOnde.append(tituloOnde);
+
+    const itens = listaDeOnde(disponibilidade);
+    if (itens.length > 0) {
+      const ul = document.createElement('ul');
+      ul.append(...itens);
+      secaoOnde.append(ul);
+    } else {
+      const nada = document.createElement('p');
+      nada.className = 'meta';
+      nada.textContent = 'Não encontrei este filme por assinatura ou grátis no Brasil.';
+      secaoOnde.append(nada);
+    }
+
+    // App honesto sobre o que não sabe é mais confiável que app que finge
+    // certeza. O dado do JustWatch tem atraso e furos — dizemos isso.
+    const fonte = document.createElement('p');
+    fonte.className = 'fonte';
+    const agora = new Date().toLocaleString('pt-BR');
+    fonte.textContent =
+      `Disponibilidade consultada em ${agora}. Fonte: JustWatch, via TMDB. ` +
+      'A informação pode estar desatualizada.';
+
+    painelConteudo.replaceChildren(titulo, meta, sinopse, secaoOnde, fonte);
+  } catch (erro) {
+    painelConteudo.replaceChildren();
+    const falha = document.createElement('p');
+    falha.textContent = 'Não consegui carregar os detalhes agora. Tente de novo.';
+    painelConteudo.append(falha);
   }
 }
 

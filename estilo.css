@@ -136,3 +136,88 @@ main { padding: 16px 20px 40px; }
 }
 
 .aviso p { margin: 0 0 16px; }
+
+/* ===================================================================
+   ESQUELETOS DE CARREGAMENTO (puxado da Fase 5)
+   =================================================================== */
+
+.esqueleto {
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #1e1e2a, #2a2a3a, #1e1e2a);
+  background-size: 200% 100%;
+  animation: pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Quem configurou o sistema para reduzir animações não vê o pulso. */
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto { animation: none; }
+}
+
+/* ===================================================================
+   PAINEL DE DETALHE (Fase 4)
+   =================================================================== */
+
+.cartao { cursor: pointer; transition: transform 0.15s ease; }
+.cartao:hover { transform: translateY(-3px); }
+.cartao:focus-visible { outline: 2px solid var(--texto); outline-offset: 3px; }
+
+.detalhe {
+  width: min(560px, 92vw);
+  border: none;
+  border-radius: 14px;
+  background: var(--carta);
+  color: var(--texto);
+  padding: 20px;
+}
+
+.detalhe::backdrop { background: rgba(0, 0, 0, 0.7); }
+
+.detalhe h2 { margin: 0 0 4px; font-size: 1.2rem; }
+.detalhe .meta { color: var(--suave); font-size: 0.82rem; margin: 0 0 14px; }
+.detalhe .sinopse { line-height: 1.55; font-size: 0.92rem; margin: 0; }
+
+.fechar {
+  float: right;
+  margin-left: 12px;
+  background: transparent;
+  color: var(--suave);
+  border: 1px solid #33334a;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fechar:hover { color: var(--texto); border-color: var(--suave); }
+
+.onde { margin-top: 22px; }
+.onde h3 { font-size: 0.9rem; margin: 0 0 10px; }
+.onde ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.onde li { display: flex; align-items: center; gap: 10px; }
+.onde img { width: 34px; height: 34px; border-radius: 7px; flex: 0 0 auto; }
+.onde .nome-servico { flex: 1; font-size: 0.88rem; }
+
+.etiqueta {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.etiqueta.incluso { background: #1f4d33; color: #a8e6c1; }
+.etiqueta.gratis  { background: #4d421f; color: #e8d79a; }
+
+.fonte {
+  margin: 18px 0 0;
+  font-size: 0.7rem;
+  color: var(--suave);
+  line-height: 1.5;
+}

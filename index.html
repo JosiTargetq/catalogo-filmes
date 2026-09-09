@@ -39,6 +39,14 @@
     <div id="grade" class="grade"></div>
   </main>
 
+  <!-- Painel de detalhe. <dialog> é o elemento que o próprio navegador
+       entende como painel sobreposto: ele já traz fundo escurecido,
+       fechar com Esc e foco no lugar certo, sem a gente programar nada. -->
+  <dialog id="detalhe" class="detalhe">
+    <button type="button" id="fechar-detalhe" class="fechar">Fechar</button>
+    <div id="detalhe-conteudo"></div>
+  </dialog>
+
   <footer class="creditos">
     <p>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or
        otherwise approved by TMDB.</p>
